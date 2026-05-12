@@ -6,20 +6,65 @@ export default function Home() {
   const [devices, setDevices] = useState<any>({});
 
   useEffect(() => {
-    const keys = [
-      "bulb_r1","fan_r1","tubelight_r1",
-      "bulb_r2","fan_r2","tubelight_r2",
-      "bulb_k","tubelight_k"
-    ];
 
-    let saved: any = {};
-    keys.forEach((key) => {
-      const val = localStorage.getItem(key);
-      saved[key] = val ? JSON.parse(val) : false;
-    });
+  const keys = [
+    "bulb_r1","fan_r1","tubelight_r1",
+    "bulb_r2","fan_r2","tubelight_r2",
+    "bulb_k","tubelight_k"
+  ];
 
-    setDevices(saved);
-  }, []);
+  let saved: any = {};
+
+  keys.forEach((key) => {
+    const val = localStorage.getItem(key);
+    saved[key] = val ? JSON.parse(val) : false;
+  });
+
+  setDevices(saved);
+
+  // 🔥 REALTIME STATUS FETCH
+  const fetchStatus = async () => {
+
+    try {
+
+      const res = await fetch("/api/status");
+      const data = await res.json();
+
+      const updated: any = {};
+
+      data.result.forEach((item: any) => {
+
+        if (item.code === "switch_1") {
+          updated.bulb_r1 = item.value;
+        }
+
+        if (item.code === "switch_2") {
+          updated.fan_r1 = item.value;
+        }
+
+        if (item.code === "switch_3") {
+          updated.tubelight_r1 = item.value;
+        }
+
+      });
+
+      setDevices((prev: any) => ({
+        ...prev,
+        ...updated,
+      }));
+
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  fetchStatus();
+
+  const interval = setInterval(fetchStatus, 3000);
+
+  return () => clearInterval(interval);
+
+}, []);
 
   const toggle = async (name: string) => {
     const newState = !devices[name];
