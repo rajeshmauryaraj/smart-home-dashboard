@@ -12,14 +12,25 @@ const context = new TuyaContext({
 const deviceId = process.env.TUYA_DEVICE_ID!;
 
 export async function GET() {
+
   try {
 
-    const result = await context.request({
+    // 🔥 DEVICE INFO
+    const deviceInfo = await context.request({
+      path: `/v1.0/iot-03/devices/${deviceId}`,
+      method: "GET",
+    });
+
+    // 🔥 DEVICE STATUS
+    const deviceStatus = await context.request({
       path: `/v1.0/iot-03/devices/${deviceId}/status`,
       method: "GET",
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      online: deviceInfo.result.online,
+      result: deviceStatus.result,
+    });
 
   } catch (error: any) {
 

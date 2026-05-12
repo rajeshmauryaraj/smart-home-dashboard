@@ -1,11 +1,20 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Fan, Lightbulb, Sun } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
   const [devices, setDevices] = useState<any>({});
+const [deviceOnline, setDeviceOnline] = useState(false);
 
   useEffect(() => {
+    const auth = localStorage.getItem("auth");
+
+if (!auth) {
+  router.push("/login");
+  return;
+}
 
   const keys = [
     "bulb_r1","fan_r1","tubelight_r1",
@@ -29,6 +38,7 @@ export default function Home() {
 
       const res = await fetch("/api/status");
       const data = await res.json();
+      setDeviceOnline(data.online);
 
       const updated: any = {};
 
@@ -147,11 +157,19 @@ export default function Home() {
 
         {/* TOGGLE */}
         <div
-          onClick={() => toggle(name)}
-          className={`relative w-32 h-14 mx-auto rounded-full cursor-pointer transition-all duration-300 flex items-center px-2 ${
-            status ? "bg-green-500" : "bg-red-600"
-          }`}
-        >
+  onClick={() => {
+    if (deviceOnline) {
+      toggle(name);
+    }
+  }}
+  className={`relative w-32 h-14 mx-auto rounded-full transition-all duration-300 flex items-center px-2 ${
+    deviceOnline
+      ? "cursor-pointer"
+      : "cursor-not-allowed opacity-50"
+  } ${
+    status ? "bg-green-500" : "bg-red-600"
+  }`}
+>
           <span className={`absolute text-white font-bold ${
             status ? "left-4" : "right-4"
           }`}>
@@ -171,7 +189,35 @@ export default function Home() {
   return (
     <div className="p-6 space-y-10">
 
-      <h1 className="text-3xl font-bold">🏠 Smart Home Dashboard</h1>
+     <div className="flex items-center justify-between">
+
+  <h1 className="text-3xl font-bold">
+    🏠 Smart Home Dashboard
+  </h1>
+
+
+<div className="flex items-center gap-4">
+  <div
+    className={`px-4 py-2 rounded-full text-white font-semibold ${
+      deviceOnline
+        ? "bg-green-500"
+        : "bg-red-500"
+    }`}
+  >
+    {deviceOnline ? "ONLINE" : "OFFLINE"}
+  </div>
+  <button
+  onClick={() => {
+    localStorage.removeItem("auth");
+    router.push("/login");
+  }}
+  className="bg-red-500 hover:bg-red-600 px-5 py-2 rounded-full text-white font-semibold transition-all cursor-pointer"
+>
+  Logout
+</button>
+</div>
+
+</div>
 
       {/* ROOM 1 */}
       <div className="glass-card p-6">
