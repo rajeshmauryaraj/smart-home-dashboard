@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+declare var require: any;
+
 const { TuyaContext } = require("@tuya/tuya-connector-nodejs");
 
 const context = new TuyaContext({
